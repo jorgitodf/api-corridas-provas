@@ -1,0 +1,54 @@
+version: "3"
+
+services:
+    #Laravel App
+    laravel-app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: app
+        restart: unless-stopped
+        ports:
+            - "8080:80"
+        working_dir: /var/www/html
+        volumes:
+            - ./:/var/www/html
+        networks:
+            - app-network
+
+    #Nginx Service
+    nginx:
+        image: nginx:alpine
+        container_name: nginx
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./:/var/www/html
+            - ./nginx/conf.d/:/etc/nginx/conf.d/
+            - ./nginx/ssl/:/etc/nginx/ssl/
+        networks:
+            - mynet
+
+    #MySql Service
+    mysql-db:
+        image: mysql:5.7.22
+        container_name: mysql-db
+        restart: unless-stopped
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: desafiodb
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: user@desafio
+            MYSQL_ROOT_PASSWORD: root@desafio!2021
+        volumes:
+            - .docker/mysqldata:/var/lib/mysql/
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        driver: bridge
